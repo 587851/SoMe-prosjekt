@@ -1,4 +1,4 @@
-# SomeProject Frontend
+# SoMe Project Frontend
 
 Dette er frontend-delen av **SomeProject**, bygget med **Next.js 13+** og **TypeScript**.
 Den tilbyr et responsivt brukergrensesnitt for innlogging, registrering, poster, kommentarer, likes, profiler, follow-relasjoner og SSE-strømming av oppdateringer fra backend.
