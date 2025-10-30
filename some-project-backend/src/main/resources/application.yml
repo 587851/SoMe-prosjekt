@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/social
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update      # dev only; use migrations in prod
+    show-sql: false
+    properties:
+      hibernate.jdbc.time_zone: UTC
+
+app:
+  upload:
+    dir: "${user.home}/someproject/uploads"
+  jwt:
+    secret: "change-this-to-a-long-random-secret"
+    expiresMinutes: 60
+
+# helpful while developing
+logging:
+  level:
+    org.springframework.security: INFO
+
+
+

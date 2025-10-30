@@ -1,0 +1,522 @@
+/* =====================================
+   Reset & base
+===================================== */
+
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Dokument/typografi */
+html { height: 100%; }
+
+body {
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  line-height: 1.5;
+  margin: 0;
+  min-height: 100vh;
+}
+
+main { flex: 1 0 auto; }
+
+
+/* =====================================
+   CSS-variabler (tema)
+===================================== */
+
+/* Lys-modus (default) */
+:root {
+  /* Farger */
+  --color-bg: #ffffff;           /* side-bakgrunn */
+  --color-surface: #f9fafb;      /* svakt tonet flate */
+  --color-header: #f3f4f6;       /* litt mørkere enn surface */
+  --color-text: #111827;
+  --color-accent: #16a34a;
+  --color-accent-hover: #15803d;
+  --color-accent-foreground: #ffffff; /* brukt av .btn */
+  --color-border: #e5e7eb;
+  --color-muted: #6b7280;
+
+  /* Typografi/layout */
+  --font-body: system-ui, sans-serif;
+  --radius: 14px;                /* myke hjørner */
+  --easing: cubic-bezier(.2, .8, .2, 1);
+
+  /* Skygger */
+  --shadow-xs: 0 1px 1px rgba(0, 0, 0, .04);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, .08), 0 2px 4px rgba(0, 0, 0, .06);
+}
+
+/* Mørk-modus overrides */
+.dark {
+  --color-bg: #0a0a0a;
+  --color-surface: #111111;
+  --color-header: #1a1a1a;       /* et hakk lysere enn bg */
+  --color-text: #f3f4f6;
+  --color-accent: #22c55e;
+  --color-accent-hover: #16a34a;
+  --color-border: #262626;
+
+  --shadow-xs: 0 1px 1px rgba(0, 0, 0, .25);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, .35);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, .45);
+}
+
+
+/* =====================================
+   Header/layout
+===================================== */
+
+.site-header {
+  background-color: var(--color-header);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+/* Full-bleed header med litt sidepadding */
+.header-inner {
+  align-items: center;
+  display: flex;
+  height: 64px;
+  justify-content: space-between;         /* venstre/høyre flush */
+  padding-inline: clamp(12px, 2.5vw, 24px);
+  position: relative;                     /* anker for absolutt sentrering */
+  width: 100%;
+}
+
+/* Nøytraliser eventuell .container i header-markup */
+.site-header .container {
+  margin: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+/* Header-grupper */
+.header-left,
+.header-right {
+  align-items: center;
+  display: flex;
+}
+
+.header-left { gap: .7rem; }
+.header-right { gap: .5rem; }
+
+/* Sticky header (valgfritt) */
+@supports (position: sticky) {
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+}
+
+/* Brand */
+.brand {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+/* Kompakt ghost-knapp */
+.btn-ghost-sm {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: .4rem;
+  padding: .4rem .6rem;
+}
+
+/* Skjul på veldig små skjermer */
+.hide-sm { display: none; }
+
+@media (min-width: 480px) {
+  .hide-sm { display: inline; }
+}
+
+/* Footer */
+footer {
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  margin-top: auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Standard containerhjelper */
+.container {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 0 1rem;
+}
+
+
+/* =====================================
+   Lenker & knapper
+===================================== */
+
+/* Lenker */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color .15s ease, text-decoration-color .15s ease;
+}
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* Primærknapp */
+.btn {
+  align-items: center;
+  background: var(--color-accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-accent-foreground);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 600;
+  gap: .5rem;
+  line-height: 1;
+  padding: .6rem .95rem;
+  transition: transform .06s ease, background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.btn:hover {
+  background: var(--color-accent-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(0); }
+
+/* Outline-variant */
+.btn-outline {
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.btn-outline:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+/* Ghost-variant */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-accent);
+}
+.btn-ghost:hover { background: rgba(22, 163, 74, 0.08); }
+.dark .btn-ghost:hover { background: rgba(34, 197, 94, 0.12); }
+
+
+/* =====================================
+   Inputs & formular
+===================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input[type="password"],
+select,
+textarea {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  outline: none;
+  padding: .6rem .75rem;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+  width: 100%;
+}
+
+input::placeholder,
+textarea::placeholder { color: var(--color-muted); }
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 25%, transparent);
+}
+
+/* Ensartet input-klasse (bruk på alle inputs) */
+.input {
+  appearance: none;
+  background-clip: padding-box;
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: calc(var(--radius) - 6px) !important;
+  caret-color: var(--color-text);
+  color: var(--color-text) !important;
+  line-height: 1.2;
+  min-height: 44px;
+  padding: .6rem .75rem !important;
+  -webkit-appearance: none;
+}
+.input::placeholder { color: var(--color-muted); }
+.input:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-accent) 18%, transparent);
+  outline: none;
+}
+
+/* Autofill overstyringer */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  transition: background-color 99999s ease-in-out 0s;
+}
+.dark .input:-webkit-autofill,
+.dark .input:-webkit-autofill:hover,
+.dark .input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+  -webkit-text-fill-color: var(--color-text) !important;
+}
+
+
+/* =====================================
+   Kort/paneler, merker, tabeller
+===================================== */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+/* Badge/merker */
+.badge {
+  align-items: center;
+  background: color-mix(in oklab, var(--color-accent) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 35%, transparent);
+  border-radius: 999px;
+  color: var(--color-accent);
+  display: inline-flex;
+  font-size: .75rem;
+  font-weight: 600;
+  gap: .35rem;
+  padding: .25rem .5rem;
+}
+.dark .badge {
+  background: color-mix(in oklab, var(--color-accent) 18%, transparent);
+  border-color: color-mix(in oklab, var(--color-accent) 45%, transparent);
+}
+
+/* Tabeller */
+table {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-collapse: collapse;
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+}
+thead th {
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 700;
+  padding: .75rem;
+  text-align: left;
+}
+tbody td {
+  border-top: 1px solid var(--color-border);
+  padding: .75rem;
+}
+tbody tr:hover {
+  background: color-mix(in oklab, var(--color-accent) 6%, var(--color-bg));
+}
+
+
+/* =====================================
+   Tema-bryter (ikonknapp)
+===================================== */
+
+.theme-toggle {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 32px;
+  justify-content: center;
+  line-height: 1;
+  overflow: hidden;          
+  position: relative;
+  transition: background-color .2s ease, border-color .2s ease;
+  width: 32px;
+}
+.theme-toggle:hover { background-color: var(--color-surface); }
+.theme-toggle:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 25%, transparent);
+  outline: none;
+}
+
+/* Ikoner (stack + animasjon) */
+.theme-toggle .icon {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+  transition: opacity .24s ease, transform .24s ease;
+  will-change: opacity, transform;
+}
+
+/* Default lys: vis måne, skjul sol */
+.theme-toggle .sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(.8);
+}
+.theme-toggle .moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Mørk: vis sol, skjul måne */
+.dark .theme-toggle .sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.dark .theme-toggle .moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(.8);
+}
+
+/* Preferer redusert bevegelse */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle .icon { transition: none; }
+}
+
+
+/* =====================================
+   Sentral kolonne-layout (feed)
+===================================== */
+
+.center-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr min(33.333vw, 720px) 1fr; /* 1/3 av skjermen, maks 720px */
+  padding: 1rem;
+}
+.center-col {
+  display: grid;
+  gap: 1rem;
+  grid-column: 2;
+}
+@media (max-width: 900px) {
+  .center-layout {
+    grid-template-columns: 1fr min(100%, 720px) 1fr; /* full bredde på mobil */
+  }
+}
+
+/* Auth-kort spacing */
+.auth-card {
+  margin-block: 0.75rem 1.25rem;
+  padding: 1.25rem; /* card finnes allerede – dette bare justerer litt */
+}
+
+
+/* =====================================
+   Header-søk (UI + popover)
+===================================== */
+
+.header-center {
+  display: flex;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: min(480px, 60%);
+}
+
+.header-search {
+  position: relative;
+  width: min(460px, 100%);
+}
+
+.header-search-input {
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 240px;
+  padding-left: 2.25rem;
+  width: 100%;
+}
+.header-search-input::placeholder { color: var(--color-muted); }
+.dark .header-search-input {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+@media (max-width: 700px) {
+  .header-search-input { min-width: 0; }
+}
+
+/* Popover for resultater */
+.search-popover {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+  left: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 6px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 100;
+}
+
+/* Resultatlinje */
+.search-item {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius) - 6px);
+  cursor: pointer;
+  display: grid;
+  gap: .6rem;
+  grid-template-columns: 28px 1fr;
+  padding: .5rem .6rem;
+  text-align: left;
+  width: 100%;
+}
+.search-item:hover,
+.search-item.is-active {
+  background: color-mix(in oklab, var(--color-accent) 8%, transparent);
+}
+.dark .search-item { color: var(--color-text); }
+
+.search-avatar {
+  border-radius: 999px;
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+
+.search-name {
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

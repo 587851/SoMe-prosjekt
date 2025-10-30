@@ -1,0 +1,87 @@
+/* Sentral feed-layout: 3 kolonner der midtkolonnen er innholdet */
+.feedLayout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr min(33.333vw, 720px) 1fr;
+  padding: 1rem;
+}
+
+/* Selve feed-kolonnen (midtkolonnen) */
+.feed {
+  display: grid;   /* gjør containeren til en grid for jevn spacing mellom poster */
+  gap: 1rem;       /* avstand mellom kort (16px) */
+  grid-column: 2;  /* plasser i midtkolonnen */
+}
+
+/* Post-kort */
+.post {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 1rem;
+}
+
+/* Toppseksjon i post: avatar, navn, meta-tid */
+.postHeader {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 40px 1fr auto;
+}
+
+/* Avatar-bilde */
+.postAvatar {
+  border-radius: 50%;
+  height: 40px;
+  object-fit: cover;
+  width: 40px;
+}
+
+/* Forfatternavn */
+.postAuthor {
+  font-weight: 600;
+}
+
+/* Metadata (tid) */
+.postMeta {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+/* Tekstinnhold – bevar linjeskift */
+.postContent {
+  white-space: pre-wrap;
+}
+
+/* Mediebilde (f.eks. vedlagt bilde) */
+.postMedia {
+  border-radius: calc(var(--radius) - 4px);
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+/* Crop bildet til 16:9 og fyll kortet pent */
+.postMediaCover {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* Handlingsknapper (like, kommenter, slett) */
+.postActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Litt tettere “ghost”-knapper i actions-linjen */
+.postActions .btn-ghost {
+  padding: 0.4rem 0.6rem;
+}
+
+/* Større gap mellom kort på brede skjermer */
+@media (min-width: 900px) {
+  .feed { gap: 1.25rem; } /* 20px */
+}

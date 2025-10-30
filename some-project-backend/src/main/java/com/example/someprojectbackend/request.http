@@ -1,0 +1,25 @@
+### Create post
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "author": "Bob kåre",
+  "content": "hei hå",
+  "imageUrl": null
+}
+
+### Get posts
+GET http://localhost:8080/api/posts?limit=10
+
+### Create user Charlie
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "charlie114@example.com",
+  "password": "password123",
+  "displayName": "Cha1qa2x32123"
+}
+
+
+

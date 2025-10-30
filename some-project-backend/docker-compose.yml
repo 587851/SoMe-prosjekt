@@ -1,0 +1,11 @@
+services:
+  backend:
+    image: your-backend-image:latest   # or build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/data/uploads    # ← bind mount host ./uploads → container /data/uploads
+    environment:
+      # (optional) if your app reads this, otherwise you hard-coded /data/uploads
+      UPLOAD_DIR: /data/uploads
+    # depends_on: [db]  # if you have Postgres etc.
