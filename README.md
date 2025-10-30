@@ -27,7 +27,7 @@ README.md  → Denne filen (root intro)
 
 ````
 
-- [Backend README](./backend/README.md)  
+- [Backend README](https://github.com/587851/SoMe-prosjekt/blob/master/some-project-backend/README.md)  
 - [Frontend README](./frontend/README.md)  
 
 ---
