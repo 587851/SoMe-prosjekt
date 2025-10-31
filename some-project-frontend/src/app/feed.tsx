@@ -24,13 +24,9 @@ type Post = {
   likedByMe: boolean;
 };
 
-// Hvilken feed som skal vises
 type FeedMode = "global" | "user" | "home" | "popular-day" | "popular-week";
-
-// En paginert side med poster fra API
 type Page = { posts: Post[]; nextCursor: { createdAt: string; id: string } | null };
 
-// Kommentar-typer og paginert svar for kommentarer
 type Comment = {
   id: string;
   author: string;
@@ -40,21 +36,21 @@ type Comment = {
 };
 type CommentsPage = { comments: Comment[]; nextCursor: { createdAt: string; id: string } | null };
 
+type Me = { id?: string | null; displayName?: string | null } | null;
+
 /* ============================
    Fetch helpers
 ============================ */
-// Generisk fetcher for SWR som automatisk legger på Authorization-header
 const fetcher = async (url: string) => {
   const token = getToken();
   const res = await fetch(url, {
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   });
-  const text = await res.text(); // les råtekst for mer nyttig feilmelding
+  const text = await res.text();
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
   return JSON.parse(text);
 };
 
-// Autentisert fetch 
 async function authedFetch(url: string, opts: RequestInit = {}) {
   const token = getToken();
   return fetch(url, {
@@ -70,43 +66,29 @@ async function authedFetch(url: string, opts: RequestInit = {}) {
 const PAGE_SIZE = 10;
 
 /* ============================
-   Keys for SWR
+   SWR Key Builders
 ============================ */
-// Bygger en getKey-fabrikk for SWR Infinite basert på feed-modus og ev. displayName
 function makeGetKey(displayName?: string, mode: FeedMode = "global") {
   const dn = (displayName ?? "").trim();
-
-  // SWR kaller denne per side; returner null når vi er på slutten
   return (pageIndex: number, prev: Page | null) => {
     if (prev && !prev.nextCursor) return null;
 
-    // Legg til cursor bare etter første side
     const cursor =
       pageIndex === 0
         ? ""
         : `&cursorCreatedAt=${encodeURIComponent(prev!.nextCursor!.createdAt)}&cursorId=${prev!.nextCursor!.id}`;
 
-    // Velg base-URL ut fra modus
     let base: string;
-    if (mode === "home") {
-      base = `${API_BASE}/api/home`;
-    } else if (mode === "user" && dn.length > 0) {
-      base = `${API_BASE}/api/users/${encodeURIComponent(dn)}/posts`;
-    } else if (mode === "popular-day") {
-      base = `${API_BASE}/api/popular?range=day`;
-    } else if (mode === "popular-week") {
-      base = `${API_BASE}/api/popular?range=week`;
-    } else {
-      base = `${API_BASE}/api/posts`;
-    }
+    if (mode === "home") base = `${API_BASE}/api/home`;
+    else if (mode === "user" && dn.length > 0) base = `${API_BASE}/api/users/${encodeURIComponent(dn)}/posts`;
+    else if (mode === "popular-day") base = `${API_BASE}/api/popular?range=day`;
+    else if (mode === "popular-week") base = `${API_BASE}/api/popular?range=week`;
+    else base = `${API_BASE}/api/posts`;
 
-    const url = `${base}${base.includes("?") ? "&" : "?"}limit=${PAGE_SIZE}${cursor}`;
-    console.log("Feed getKey:", url);
-    return url;
+    return `${base}${base.includes("?") ? "&" : "?"}limit=${PAGE_SIZE}${cursor}`;
   };
 }
 
-// Key-bygger for kommentarer til en spesifikk post
 function makeCommentsGetKey(postId: string) {
   return (pageIndex: number, prev: CommentsPage | null) => {
     if (prev && !prev.nextCursor) return null;
@@ -119,10 +101,9 @@ function makeCommentsGetKey(postId: string) {
 }
 
 /* ============================
-   Composer (post-skjema)
+   Composer
 ============================ */
 export function Composer() {
-  // Sender inn ny post til backend; viser alert hvis bruker ikke er innlogget
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -154,37 +135,25 @@ export function Composer() {
 /* ============================
    Comments Drawer
 ============================ */
-function Comments({
-  postId,
-  onClose,
-}: {
-  postId: string;
-  onClose: () => void;
-}) {
-  // Paginert henting av kommentarer med SWR Infinite
+function Comments({ postId, onClose }: { postId: string; onClose: () => void }) {
   const { data, size, setSize, isLoading, isValidating, mutate } = useSWRInfinite<CommentsPage>(
     makeCommentsGetKey(postId),
     fetcher,
     { revalidateOnFocus: false, initialSize: 1 }
   );
 
-  // Flatten alle kommentar-sider til én liste
   const comments = useMemo(() => (data ? data.flatMap((d) => d.comments) : []), [data]);
 
-  // Legg til kommentar med optimistisk oppdatering (prepend i første side)
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     if (!getToken()) {
       alert("Du må være innlogget for å kommentere.");
       return;
     }
-
     const form = e.currentTarget;
     const content = (form.elements.namedItem("content") as HTMLTextAreaElement).value.trim();
     if (!content) return;
 
-    // Midlertidig optimistisk kommentar
     const temp: Comment = {
       id: `temp-${Date.now()}`,
       author: "Deg",
@@ -193,7 +162,6 @@ function Comments({
       createdAt: new Date().toISOString(),
     };
 
-    // Optimistic update: legg temp-kommentar inn først
     mutate((pages) => {
       if (!pages || pages.length === 0) return pages;
       const clone = structuredClone(pages);
@@ -201,14 +169,12 @@ function Comments({
       return clone;
     }, false);
 
-    // Send faktisk forespørsel
     const res = await authedFetch(`${API_BASE}/api/posts/${postId}/comments`, {
       method: "POST",
       body: JSON.stringify({ content }),
     });
 
     if (res.ok) {
-      // Bytt ut temp med ekte respons
       const real = await res.json();
       mutate((pages) => {
         if (!pages || pages.length === 0) return pages;
@@ -217,7 +183,6 @@ function Comments({
         return clone;
       }, false);
     } else {
-      // Rull tilbake ved feil
       mutate();
       alert("Kunne ikke publisere kommentaren.");
     }
@@ -241,21 +206,16 @@ function Comments({
         borderTopRightRadius: "var(--radius)",
       }}
     >
-      {/* Topp-linje med tittel og lukk-knapp */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".5rem" }}>
         <strong>Kommentarer</strong>
-        <button className="btn-ghost" onClick={onClose}>
-          Lukk
-        </button>
+        <button className="btn-ghost" onClick={onClose}>Lukk</button>
       </div>
 
-      {/* Skjema for å poste ny kommentar */}
       <form onSubmit={onSubmit} style={{ display: "grid", gap: ".5rem", marginBottom: ".75rem" }}>
         <textarea name="content" rows={2} placeholder="Skriv en kommentar…" />
         <button className="btn">Kommenter</button>
       </form>
 
-      {/* Liste med kommentarer */}
       {comments.map((c) => (
         <div
           key={c.id}
@@ -278,7 +238,6 @@ function Comments({
         </div>
       ))}
 
-      {/* Paginering / "load more" status */}
       <div style={{ textAlign: "center", color: "var(--color-muted)", padding: ".5rem" }}>
         {isLoading || isValidating ? (
           "Laster…"
@@ -300,8 +259,37 @@ function Comments({
 export default function Feed({ displayName, mode = "global" }: { displayName?: string; mode?: FeedMode }) {
   const getKey = makeGetKey(displayName, mode);
   const [openFor, setOpenFor] = useState<string | null>(null);
+  const [me, setMe] = useState<Me>(null);
 
-  // Paginert feed med SWR Infinite
+  // Load current user once and on "auth-changed"
+  useEffect(() => {
+    const t = getToken();
+    if (!t) { setMe(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${t}` } });
+        if (!cancelled) setMe(r.ok ? await r.json() : null);
+      } catch {
+        if (!cancelled) setMe(null);
+      }
+    })();
+
+    const onAuth = () => {
+      const nt = getToken();
+      if (!nt) { setMe(null); return; }
+      fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${nt}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(setMe)
+        .catch(() => setMe(null));
+    };
+    window.addEventListener("auth-changed", onAuth);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("auth-changed", onAuth);
+    };
+  }, []);
+
   const { data, size, setSize, isLoading, isValidating, error, mutate } = useSWRInfinite<Page>(getKey, fetcher, {
     revalidateOnFocus: false,
     initialSize: 1,
@@ -309,22 +297,20 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
 
   const posts = useMemo(() => (data ? data.flatMap((d) => d.posts) : []), [data]);
 
-  // --- Siste side deteksjon ---
+  // End-of-list detection
   const isEnd = useMemo(() => {
     if (!data || data.length === 0) return false;
     return !data[data.length - 1]?.nextCursor;
   }, [data]);
 
-  // Infinite scroll vha. IntersectionObserver (sentinel nederst)
+  // Infinite scroll — flicker-free
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const pagingRef = useRef(false); 
+  const pagingRef = useRef(false);
 
-  // Når validering er ferdig, nullstill debounce
   useEffect(() => {
     if (!isValidating) pagingRef.current = false;
   }, [isValidating]);
 
-  // Sett opp observer for å laste inn flere sider når sentinel kommer i view
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
@@ -333,20 +319,20 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
       (entries) => {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
-          if (isValidating || isEnd) return; 
-          if (pagingRef.current) return;    
+          if (isValidating || isEnd) return;
+          if (pagingRef.current) return;
           pagingRef.current = true;
           setSize((s) => s + 1);
         }
       },
-      { rootMargin: "600px" } 
+      { rootMargin: "600px" }
     );
 
-    if (!isEnd) io.observe(el); // observer kun hvis det finnes flere sider
+    if (!isEnd) io.observe(el);
     return () => io.disconnect();
   }, [setSize, isValidating, isEnd]);
 
-  // Live-oppdateringer via SSE
+  // SSE updates
   useEffect(() => {
     const es = new EventSource(`${API_BASE}/api/stream/posts`);
 
@@ -360,7 +346,7 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
           if (!pages || pages.length === 0) return pages;
           const clone = structuredClone(pages);
 
-          // Oppdater eksisterende post hvis den finnes i listen
+          // Update in place if exists
           let found = false;
           for (const page of clone) {
             const idx = page.posts.findIndex((p) => p.id === post.id);
@@ -371,7 +357,7 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
             }
           }
 
-          // Hvis ny post: push inn i første side
+          // If new and mode allows, insert into first page (sorted)
           if (!found && mode !== "home" && !mode.startsWith("popular")) {
             const page0 = clone[0];
             page0.posts = [...page0.posts, post]
@@ -380,16 +366,13 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
           }
           return clone;
         }, false);
-      } catch (e) {
-        console.warn("Bad SSE payload:", e);
-      }
+      } catch (e) { console.warn("Bad SSE payload:", e); }
     };
 
     const deletedHandler = (evt: MessageEvent) => {
       const postId = evt.data?.toString();
       if (!postId) return;
 
-      // Fjern post fra alle sider
       mutate((pages) => {
         if (!pages) return pages;
         const clone = structuredClone(pages);
@@ -403,14 +386,12 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
     es.addEventListener("post", postHandler);
     es.addEventListener("postDeleted", deletedHandler);
     es.onerror = (e) => console.warn("SSE error", e);
-    return () => es.close(); 
+    return () => es.close();
   }, [mutate, displayName, mode]);
 
-
   /* ============================
-     Like toggle
+     Like / Delete handlers
   ============================ */
-  // Lokal optimistisk oppdatering av like-status og teller
   function toggleLikeOptimistic(postId: string, like: boolean) {
     mutate((pages) => {
       if (!pages) return pages;
@@ -433,10 +414,7 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
   let likeInFlight: Record<string, boolean> = {};
 
   async function onLikeClick(p: Post) {
-    if (!getToken()) {
-      alert("Du må være innlogget for å like.");
-      return;
-    }
+    if (!getToken()) { alert("Du må være innlogget for å like."); return; }
     if (likeInFlight[p.id]) return;
     likeInFlight[p.id] = true;
 
@@ -447,13 +425,11 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
       const res = await authedFetch(`${API_BASE}/api/posts/${p.id}/likes`, {
         method: like ? "POST" : "DELETE",
       });
-
       if (!res.ok) {
         toggleLikeOptimistic(p.id, !like);
         console.error("Like failed", await res.text());
         return;
       }
-
       const fresh: Post = await res.json();
       mutate((pages) => {
         if (!pages) return pages;
@@ -472,7 +448,6 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
     }
   }
 
-  // Optimistisk fjerning av post fra UI
   function removePostOptimistic(postId: string) {
     mutate((pages) => {
       if (!pages) return pages;
@@ -484,15 +459,11 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
     }, false);
   }
 
-  // Slett post: optimistisk fjern, kall API, rull tilbake ved feil
   async function deletePost(postId: string) {
-    if (!getToken()) {
-      alert("Du må være innlogget for å slette.");
-      return;
-    }
+    if (!getToken()) { alert("Du må være innlogget for å slette."); return; }
     if (!confirm("Slett dette innlegget? Dette kan ikke angres.")) return;
 
-    const previous = data; // behold for ev. rollback
+    const previous = data;
     removePostOptimistic(postId);
 
     try {
@@ -501,18 +472,17 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
         throw new Error(await res.text());
       }
     } catch (e) {
-      mutate(previous, false); // rollback
+      mutate(previous, false);
       console.error("Delete failed", e);
       alert("Kunne ikke slette innlegget.");
     }
   }
 
-  // Åpne kommentarskuff for en gitt post
   function openComments(id: string) {
     setOpenFor(id);
   }
 
-  // Feil-/lastestatus og tom tilstand
+  // Status states
   if (error) {
     return (
       <div style={{ color: "crimson", padding: "1rem" }}>
@@ -528,76 +498,78 @@ export default function Feed({ displayName, mode = "global" }: { displayName?: s
       </div>
     );
 
-  // Selve feed-listen
+  // Render
   return (
     <>
-      {posts.map((p) => (
-        <article key={p.id} className={styles.post}>
-          <header className={styles.postHeader}>
-            {/* Avatar lenker til brukerprofil */}
-            <Link
-              href={`/user/${encodeURIComponent(p.author)}`}
-              className={styles.postAvatar}
-              aria-label={`Vis profil for ${p.author}`}
-              prefetch={false}
-            >
-              <Avatar src={p.authorAvatarUrl ?? null} displayName={p.author} size={40} />
-            </Link>
+      {posts.map((p) => {
+        const canDelete =
+          !!me?.displayName &&
+          me.displayName.trim().toLowerCase() === p.author.trim().toLowerCase();
 
-            {/* Forfatternavn som lenke */}
-            <Link
-              href={`/user/${encodeURIComponent(p.author)}`}
-              className={styles.postAuthor}
-              title={`Vis innlegg fra ${p.author}`}
-              prefetch={false}
-            >
-              {p.author}
-            </Link>
+        return (
+          <article key={p.id} className={styles.post}>
+            <header className={styles.postHeader}>
+              <Link
+                href={`/user/${encodeURIComponent(p.author)}`}
+                className={styles.postAvatar}
+                aria-label={`Vis profil for ${p.author}`}
+                prefetch={false}
+              >
+                <Avatar src={p.authorAvatarUrl ?? null} displayName={p.author} size={40} />
+              </Link>
 
-            {/* Tidsstempel for posten */}
-            <time className={styles.postMeta} dateTime={p.createdAt}>
-              {new Date(p.createdAt).toLocaleString()}
-            </time>
-          </header>
+              <Link
+                href={`/user/${encodeURIComponent(p.author)}`}
+                className={styles.postAuthor}
+                title={`Vis innlegg fra ${p.author}`}
+                prefetch={false}
+              >
+                {p.author}
+              </Link>
 
-          {/* Tekstinnhold */}
-          <div className={styles.postContent}>{p.content}</div>
+              <time className={styles.postMeta} dateTime={p.createdAt}>
+                {new Date(p.createdAt).toLocaleString()}
+              </time>
+            </header>
 
-          {/* Bilde hvis finnes */}
-          {p.imageUrl && (
-            <Image
-              className={`${styles.postMedia} ${styles.postMediaCover}`}
-              src={p.imageUrl}
-              alt="Innleggsbilde"
-              width={1280}
-              height={720}
-            />
-          )}
+            <div className={styles.postContent}>{p.content}</div>
 
-          {/* Handlingsknapper */}
-          <div className={styles.postActions}>
-            <button className="btn-ghost" onClick={() => onLikeClick(p)} aria-pressed={p.likedByMe}>
-              {p.likedByMe ? "💚" : "❤️"} {p.likeCount}
-            </button>
-            <button className="btn-ghost" onClick={() => openComments(p.id)}>
-              💬 {p.commentCount}
-            </button>
-            <button className="btn-ghost" onClick={() => deletePost(p.id)} title="Slett innlegg">
-              🗑️ Slett
-            </button>
-          </div>
-        </article>
-      ))}
+            {p.imageUrl && (
+              <Image
+                className={`${styles.postMedia} ${styles.postMediaCover}`}
+                src={p.imageUrl}
+                alt="Innleggsbilde"
+                width={1280}
+                height={720}
+              />
+            )}
 
-      {/* Sentinel for infinite scroll (høyden settes til 0 ved end) */}
+            <div className={styles.postActions}>
+              <button className="btn-ghost" onClick={() => onLikeClick(p)} aria-pressed={p.likedByMe}>
+                {p.likedByMe ? "💚" : "❤️"} {p.likeCount}
+              </button>
+              <button className="btn-ghost" onClick={() => openComments(p.id)}>
+                💬 {p.commentCount}
+              </button>
+
+              {canDelete && (
+                <button className="btn-ghost" onClick={() => deletePost(p.id)} title="Slett innlegg">
+                  🗑️ Slett
+                </button>
+              )}
+            </div>
+          </article>
+        );
+      })}
+
+      {/* Sentinel for infinite scroll (height 0 when end) */}
       <div ref={sentinelRef} style={{ height: isEnd ? 0 : 1 }} />
 
-      {/* Footer-status for lasting / end-of-list */}
+      {/* Footer status */}
       <div style={{ textAlign: "center", padding: "0.75rem", color: "var(--color-muted)" }}>
         {isValidating ? "Laster…" : isEnd ? "Det finnes ikke flere innlegg" : ""}
       </div>
 
-      {/* Kommentarskuff */}
       {openFor && <Comments postId={openFor} onClose={() => setOpenFor(null)} />}
     </>
   );
