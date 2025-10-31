@@ -1,5 +1,5 @@
 
-# SomeProject Backend
+# SoMe Project Backend
 
 Dette er backend-delen av **SomeProject**, bygget med **Spring Boot 3**, **Spring Security (JWT)**, **Spring Data JPA** og **PostgreSQL**.  
 Den tilbyr et REST-API for **autentisering, brukerprofiler, poster, kommentarer, likes, follow-relasjoner, SSE-streaming og populære innlegg**.

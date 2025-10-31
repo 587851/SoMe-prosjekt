@@ -1,8 +1,7 @@
-
-# SoMe – Fullstack Social Media Project
+# SoMe – Fullstack sosiale medier prosjekt
 
 Dette er et fullstack SoMe-prosjekt bygget med **Spring Boot + PostgreSQL** i backend og **Next.js + TypeScript** i frontend.  
-Brukere kan registrere seg, logge inn, publisere innlegg, like, kommentere, følge andre, og se en live feed med SSE (Server-Sent Events).
+Brukere kan registrere seg, logge inn, publisere innlegg, like, kommentere, følge andre, og se en live feed med innlegg.
 
 ---
 
@@ -27,8 +26,8 @@ README.md  → Denne filen (root intro)
 
 ````
 
-- [Backend README](./backend/README.md)  
-- [Frontend README](./frontend/README.md)  
+- [Backend README](https://github.com/587851/SoMe-prosjekt/blob/master/some-project-backend/README.md)  
+- [Frontend README](https://github.com/587851/SoMe-prosjekt/blob/master/some-project-frontend/README.md)  
 
 ---
 
