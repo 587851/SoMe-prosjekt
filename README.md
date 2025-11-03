@@ -7,10 +7,26 @@ Brukere kan registrere seg, logge inn, publisere innlegg, like, kommentere, føl
 
 ## Demo & Skjermbilder
 
-![Login-skjerm](docs/screens/login.png)  
-![Feed med innlegg](docs/screens/feed.png)  
+### Innloggingsskjerm
+![Login](https://github.com/587851/SoMe-prosjekt/blob/master/LoggInn.png?raw=true)
 
-🎥 [Se demo-video på YouTube](https://youtu.be/sett-inn-din-demo-link)
+### Registreringsskjerm
+![Registrering](https://github.com/587851/SoMe-prosjekt/blob/master/Registrer.png?raw=true)
+
+### Forside med innlegg fra de brukeren følger
+![Forside med innlegg](https://github.com/587851/SoMe-prosjekt/blob/master/forside.png?raw=true)  
+
+### Profilside til brukeren
+![Profil til bruker](https://github.com/587851/SoMe-prosjekt/blob/master/Profil.png?raw=true)
+
+### Kommentarer på en post
+![Kommentarer på post](https://github.com/587851/SoMe-prosjekt/blob/master/Kommentar.png?raw=true)
+
+### Søkefunksjon
+![Søkefunksjon](https://github.com/587851/SoMe-prosjekt/blob/master/S%C3%B8k.png?raw=true)
+
+## Video presentasjon
+[Se demo-video på YouTube](https://youtu.be/6QxjA5EGPOY)
 
 ---
 
