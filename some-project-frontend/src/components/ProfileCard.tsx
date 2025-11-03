@@ -129,59 +129,60 @@ export default function ProfileCard({ displayName }: { displayName: string }) {
 
   /** Endre avatar for brukeren */
   async function onAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const input = e.currentTarget;
-    const file = input.files?.[0];
-    if (!file || !token) return;
+  const input = e.currentTarget;
+  const file = input.files?.[0];
+  if (!file || !token) return;
 
-    try {
-      const form = new FormData();
-      form.append("file", file);
+  try {
+    const form = new FormData();
+    form.append("file", file);
 
-      const res = await fetch(`${API_BASE}/api/files/avatar`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
+    const res = await fetch(`${API_BASE}/api/files/avatar`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
 
-      // Backend returnerer JSON: { "avatarPath": "/files/avatars/<uuid>/avatar_..." }
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`Opplasting feilet (${res.status}): ${text.slice(0, 200)}`);
-      }
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Opplasting feilet (${res.status}): ${text.slice(0, 200)}`);
+    }
 
-      let url: string | null = null;
-      const ct = res.headers.get("content-type") || "";
+    let url: string | null = null;
+    const ct = res.headers.get("content-type") || "";
 
+    if (res.status !== 204) {
       if (ct.includes("application/json")) {
         const data: any = await res.json().catch(() => ({}));
         url =
-          data?.avatarPath ??
-          data?.avatarUrl ??
-          data?.url ??
-          data?.path ??
           (typeof data === "string" ? data : null) ??
+          data?.url ??
+          data?.avatarUrl ??
+          data?.path ??
+          data?.location ??
           null;
       } else {
         const text = await res.text().catch(() => "");
-        url = text && (/^\/|^https?:\/\//i.test(text) ? text : null);
+        url = text && /^\/|^https?:\/\//i.test(text) ? text : null;
       }
-
-      if (url) {
-        const busted = `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
-        setProfile((p) => (p ? { ...p, avatarUrl: busted } : p));
-      } else {
-        await loadProfile(displayName);
-      }
-
-      router.refresh();
-      window.dispatchEvent(new Event("auth:changed"));
-    } catch (err) {
-      console.error("Feil ved opplasting av avatar:", err);
-      alert(err instanceof Error ? err.message : "Opplasting av avatar feilet.");
-    } finally {
-      e.currentTarget.value = "";
     }
+
+    if (url && typeof url === "string") {
+      const busted = `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      setProfile((p) => (p ? { ...p, avatarUrl: busted } : p));
+    } else {
+      await loadProfile(displayName);
+    }
+
+    router.refresh();
+    window.dispatchEvent(new Event("auth-changed"));
+  } catch (err) {
+    console.error("Feil ved opplasting av avatar:", err);
+    alert(err instanceof Error ? err.message : "Opplasting av avatar feilet.");
+  } finally {
+    if (input) input.value = "";
   }
+}
   /** Følg/avfølg med optimistisk UI-oppdatering */
   async function toggleFollow() {
     if (!token || !stats || isMe || followBusy) return;
