@@ -25,7 +25,8 @@ Brukere kan registrere seg, logge inn, publisere innlegg, like, kommentere, føl
 ### Søkefunksjon
 ![Søkefunksjon](https://github.com/587851/SoMe-prosjekt/blob/master/S%C3%B8k.png?raw=true)
 
-🎥 [Se demo-video på YouTube](https://youtu.be/sett-inn-din-demo-link)
+## Video presentasjon
+[Se demo-video på YouTube](https://youtu.be/6QxjA5EGPOY)
 
 ---
 
